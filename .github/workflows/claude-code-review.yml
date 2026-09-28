@@ -165,11 +165,26 @@ jobs:
       issues: write
 
     steps:
+      # Forks without a Claude credential should not fail an otherwise valid
+      # PR. Keep the optional review available once the secret is configured.
+      - name: Check optional Claude credential
+        id: credential
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Claude review skipped: CLAUDE_CODE_OAUTH_TOKEN is not configured in this repository."
+          fi
+
       # The PR number and head SHA live in different event fields depending on
       # whether we were triggered by a PR event or a maintainer's comment. On the
       # comment path the payload has no PR head SHA, so resolve it from the API.
       - name: Resolve target PR
         id: pr
+        if: ${{ steps.credential.outputs.available == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -184,6 +199,7 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: Checkout PR head for review context (read-only; never executed)
+        if: ${{ steps.credential.outputs.available == 'true' }}
         uses: actions/checkout@v7
         with:
           # Check out the PR head so Read/Grep/Glob show the *proposed* file
@@ -225,6 +241,7 @@ jobs:
       # clears the directory first, so a PR that ships its own `pr-context/`
       # cannot pre-seed what the reviewer reads.
       - name: Stage PR context for the reviewer
+        if: ${{ steps.credential.outputs.available == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -263,6 +280,7 @@ jobs:
 
       - name: Run Claude Code Review
         id: claude-review
+        if: ${{ steps.credential.outputs.available == 'true' }}
         # Pinned to a full commit SHA, not the mutable `v1` tag. This workflow's
         # behaviour depends on action internals that `v1` has silently changed
         # under us before — the env scrub that broke review for nine days

@@ -307,6 +307,19 @@ if auth0_domain or auth0_client_id:
     deployment["VITE_GEOLIBRE_AUTH0_DOMAIN"] = auth0_host
     deployment["VITE_GEOLIBRE_AUTH0_CLIENT_ID"] = auth0_client_id
 
+# Display the Cloudflare Access logout control only on an installation where
+# the operator has enabled Access for the entire hostname. This switch is
+# presentation only: it does not validate a session or secure the origin.
+cloudflare_access = os.environ.get("GEOLIBRE_CLOUDFLARE_ACCESS", "").strip().lower()
+if cloudflare_access in ("1", "true"):
+    if clerk_key or auth0_domain or auth0_client_id:
+        raise SystemExit(
+            "ERROR: GEOLIBRE_CLOUDFLARE_ACCESS cannot be used with the Clerk or Auth0 sign-in gate."
+        )
+    deployment["VITE_GEOLIBRE_CLOUDFLARE_ACCESS"] = "1"
+elif cloudflare_access not in ("", "0", "false"):
+    raise SystemExit("ERROR: GEOLIBRE_CLOUDFLARE_ACCESS must be 1/true or 0/false.")
+
 # Origins allowed to drive a framed app over the embed postMessage API. Unset
 # means the API stays off, so a public deployment can never be driven by the
 # page that frames it. "*" allows any origin: private networks only.

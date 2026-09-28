@@ -178,6 +178,10 @@ const isHostedWebApp = !isTauri() && !__GEOLIBRE_EMBED_BUILD__;
 startAnalytics(isHostedWebApp);
 // Clerk or Auth0, whichever this deployment configured (neither, normally).
 const authGate = resolveAuthGate(isHostedWebApp);
+// Access authenticates every HTTP request before it reaches the container.
+// This public runtime flag only opts into its logout control; it is not a gate.
+const cloudflareAccess =
+  isHostedWebApp && readDeploymentEnvValue("VITE_GEOLIBRE_CLOUDFLARE_ACCESS") === "1";
 if (authGate) {
   // Apply the initial theme now rather than leaving it to <App />. A gate paints
   // a full-screen signed-out page *before* App mounts, and App is where
@@ -236,20 +240,22 @@ function loadAuthGate(
 // stale lazy chunk 404s (cooldown-guarded; if sessionStorage is blocked it
 // skips the reload and lets the preload error surface instead). That keeps
 // the user's session/map state intact and removes the self-refresh loop.
-registerSW({
-  immediate: true,
-  onNeedReload() {
-    // Intentionally a no-op: the updated SW is already in control, so let the
-    // refreshed shell load on the user's next page load rather than yanking the
-    // page out from under them. See installStaleChunkReload for the on-demand
-    // recovery path when a now-deleted lazy chunk is actually requested.
-  },
-  onRegisterError(error) {
-    // Registration can fail in production (non-secure origin, scope conflict).
-    // The app still works without the SW, so surface it rather than fail.
-    console.error("[GeoLibre] Service worker registration failed", error);
-  },
-});
+if (!cloudflareAccess) {
+  registerSW({
+    immediate: true,
+    onNeedReload() {
+      // Intentionally a no-op: the updated SW is already in control, so let the
+      // refreshed shell load on the user's next page load rather than yanking the
+      // page out from under them. See installStaleChunkReload for the on-demand
+      // recovery path when a now-deleted lazy chunk is actually requested.
+    },
+    onRegisterError(error) {
+      // Registration can fail in production (non-secure origin, scope conflict).
+      // The app still works without the SW, so surface it rather than fail.
+      console.error("[GeoLibre] Service worker registration failed", error);
+    },
+  });
+}
 
 const sharedSettingsUrl = desktopSettingsUrl(window.location.search);
 const sharedSettingsReady = sharedSettingsUrl
@@ -293,6 +299,7 @@ void Promise.all([
   import("./App"),
   import("./components/common/error-boundaries"),
   loadAuthGate(authGate),
+  cloudflareAccess ? import("./components/auth/CloudflareAccessSession") : Promise.resolve(null),
   // Sidecar-dependent panels can issue a request as soon as App mounts. On
   // Windows, wait until those requests have the native transport installed.
   nativeSidecarFetchReady,
@@ -306,9 +313,13 @@ void Promise.all([
   // (lazily loaded) catalog, so the UI never paints raw translation keys.
   startupLanguageReady,
 ])
-  .then(([{ default: App }, { AppErrorBoundary }, withAuthGate]) => {
+  .then(([{ default: App }, { AppErrorBoundary }, withAuthGate, accessModule]) => {
     const app = <App />;
-    const authenticatedApp = withAuthGate ? withAuthGate(app) : app;
+    const authenticatedApp = withAuthGate
+      ? withAuthGate(app)
+      : accessModule
+        ? <accessModule.CloudflareAccessSession>{app}</accessModule.CloudflareAccessSession>
+        : app;
     ReactDOM.createRoot(document.getElementById("root")!).render(
       <React.StrictMode>
         <I18nextProvider i18n={i18n}>

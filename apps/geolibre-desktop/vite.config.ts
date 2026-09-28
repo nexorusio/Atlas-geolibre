@@ -1369,7 +1369,12 @@ function pwaPlugin(): Plugin[] {
       navigateFallback: "index.html",
       // Never SPA-fallback the sidecar proxy or any asset request; let those hit
       // the network/precache directly.
-      navigateFallbackDenylist: [/^\/sidecar\//, /^\/__geolibre_/, /\/[^/?]+\.[^/]+$/],
+      navigateFallbackDenylist: [
+        /^\/sidecar\//,
+        /^\/cdn-cgi\/access\//,
+        /^\/__geolibre_/,
+        /\/[^/?]+\.[^/]+$/,
+      ],
       runtimeCaching: [
         {
           // Hashed build assets under /assets/ that the precache skips: the
