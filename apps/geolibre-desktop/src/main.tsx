@@ -178,6 +178,10 @@ const isHostedWebApp = !isTauri() && !__GEOLIBRE_EMBED_BUILD__;
 startAnalytics(isHostedWebApp);
 // Clerk or Auth0, whichever this deployment configured (neither, normally).
 const authGate = resolveAuthGate(isHostedWebApp);
+// Access authenticates every HTTP request before it reaches the container.
+// This public runtime flag only opts into its logout control; it is not a gate.
+const cloudflareAccess =
+  isHostedWebApp && readDeploymentEnvValue("VITE_GEOLIBRE_CLOUDFLARE_ACCESS") === "1";
 if (authGate) {
   // Apply the initial theme now rather than leaving it to <App />. A gate paints
   // a full-screen signed-out page *before* App mounts, and App is where
@@ -293,6 +297,7 @@ void Promise.all([
   import("./App"),
   import("./components/common/error-boundaries"),
   loadAuthGate(authGate),
+  cloudflareAccess ? import("./components/auth/CloudflareAccessSession") : Promise.resolve(null),
   // Sidecar-dependent panels can issue a request as soon as App mounts. On
   // Windows, wait until those requests have the native transport installed.
   nativeSidecarFetchReady,
@@ -306,9 +311,13 @@ void Promise.all([
   // (lazily loaded) catalog, so the UI never paints raw translation keys.
   startupLanguageReady,
 ])
-  .then(([{ default: App }, { AppErrorBoundary }, withAuthGate]) => {
+  .then(([{ default: App }, { AppErrorBoundary }, withAuthGate, accessModule]) => {
     const app = <App />;
-    const authenticatedApp = withAuthGate ? withAuthGate(app) : app;
+    const authenticatedApp = withAuthGate
+      ? withAuthGate(app)
+      : accessModule
+        ? <accessModule.CloudflareAccessSession>{app}</accessModule.CloudflareAccessSession>
+        : app;
     ReactDOM.createRoot(document.getElementById("root")!).render(
       <React.StrictMode>
         <I18nextProvider i18n={i18n}>

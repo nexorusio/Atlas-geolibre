@@ -51,3 +51,9 @@ appearance of the new login screen.
 
 See GeoLibre's self-hosting guide for the supported server-side proxy options:
 https://geolibre.app/self-hosting/
+
+For a single sign-in with a working **Log out** control on the current Atlas
+Droplet, follow [Cloudflare Access cutover](nexorus-atlas-access.md). Keep the
+present `basic_auth` until the Access application, tunnel, and origin isolation
+have been verified. `GEOLIBRE_CLOUDFLARE_ACCESS=1` only reveals the logout
+control; the flag itself grants no protection.
