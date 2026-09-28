@@ -13,6 +13,7 @@ import { useCallback, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useBeforeUnloadGuard } from "../../hooks/useBeforeUnloadGuard";
 import { CALLBACK_PARAMS, stashAuthReturnQuery } from "../../lib/auth-return-url";
+import { NexorusAuthShell } from "./NexorusAuthShell";
 
 interface Auth0GateProps {
   /** Tenant (or custom) domain, already normalized to a bare hostname. */
@@ -55,12 +56,9 @@ function onRedirectCallback(appState?: AppState): void {
 /** Full-screen centered layout shared by the loading, error, and signed-out screens. */
 function AuthScreen({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
   return (
-    <main
-      {...(alert ? { role: "alert" } : {})}
-      className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-8 text-center"
-    >
-      {children}
-    </main>
+    <NexorusAuthShell alert={alert}>
+      <div className="flex flex-col items-center gap-4 text-center">{children}</div>
+    </NexorusAuthShell>
   );
 }
 
@@ -135,12 +133,12 @@ function Auth0Screens({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <NexorusAuthShell>
         <div
           aria-hidden="true"
-          className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary"
+          className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#344569] border-t-[#8d7bf7]"
         />
-      </div>
+      </NexorusAuthShell>
     );
   }
 
@@ -150,14 +148,16 @@ function Auth0Screens({ children }: { children: ReactNode }) {
   if (error) {
     return (
       <AuthScreen alert>
-        <AlertTriangle className="h-10 w-10 text-destructive" />
+        <AlertTriangle className="h-10 w-10 text-[#ed89a0]" />
         <div className="space-y-1">
-          <h1 className="text-lg font-semibold">{t("auth.unavailableTitle")}</h1>
-          <p className="max-w-md text-sm text-muted-foreground">
+          <h1 className="text-lg font-semibold text-white">{t("auth.unavailableTitle")}</h1>
+          <p className="max-w-md text-sm text-[#b7c6df]">
             {error.message || t("auth.unavailableDescription")}
           </p>
         </div>
-        <Button onClick={signIn}>{t("auth.retry")}</Button>
+        <Button className="bg-[#6657e8] text-white hover:bg-[#7d70f1]" onClick={signIn}>
+          {t("auth.retry")}
+        </Button>
       </AuthScreen>
     );
   }
@@ -166,10 +166,12 @@ function Auth0Screens({ children }: { children: ReactNode }) {
     return (
       <AuthScreen>
         <div className="space-y-1">
-          <h1 className="text-lg font-semibold">{t("auth.signInTitle")}</h1>
-          <p className="max-w-md text-sm text-muted-foreground">{t("auth.signInDescription")}</p>
+          <h1 className="text-lg font-semibold text-white">Nexorus Atlas</h1>
+          <p className="max-w-md text-sm text-[#b7c6df]">{t("auth.signInDescription")}</p>
         </div>
-        <Button onClick={signIn}>{t("auth.signIn")}</Button>
+        <Button className="bg-[#6657e8] text-white hover:bg-[#7d70f1]" onClick={signIn}>
+          {t("auth.signIn")}
+        </Button>
       </AuthScreen>
     );
   }

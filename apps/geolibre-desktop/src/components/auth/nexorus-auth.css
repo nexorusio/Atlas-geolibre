@@ -1,0 +1,75 @@
+.nexorus-auth {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: auto;
+  padding: 24px;
+  color: #f3f7ff;
+  background:
+    radial-gradient(circle at 18% 10%, #17365d 0, transparent 42%),
+    radial-gradient(circle at 90% 86%, #1b2159 0, transparent 38%),
+    #07152d;
+}
+
+.nexorus-auth__panel {
+  width: min(100%, 440px);
+  padding: clamp(24px, 5vw, 40px);
+  border: 1px solid rgb(180 204 255 / 16%);
+  border-radius: 24px;
+  background: rgb(10 25 49 / 86%);
+  box-shadow: 0 24px 72px rgb(0 7 21 / 36%);
+  backdrop-filter: blur(16px);
+}
+
+.nexorus-auth__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.nexorus-auth__logo {
+  display: block;
+  width: min(100%, 250px);
+  height: auto;
+}
+
+.nexorus-auth__product {
+  color: #a6b9d5;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.38em;
+}
+
+.nexorus-auth__content {
+  width: 100%;
+}
+
+/* Clerk's card remains the real sign-in form; only its presentation changes. */
+.nexorus-auth .cl-rootBox,
+.nexorus-auth .cl-cardBox {
+  width: 100%;
+  max-width: 100%;
+}
+
+.nexorus-auth .cl-cardBox,
+.nexorus-auth .cl-card {
+  box-shadow: none;
+}
+
+.nexorus-auth .cl-card {
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 480px) {
+  .nexorus-auth {
+    padding: 16px;
+  }
+
+  .nexorus-auth__panel {
+    border-radius: 18px;
+  }
+}

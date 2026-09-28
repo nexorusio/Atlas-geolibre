@@ -1326,14 +1326,19 @@ function pwaPlugin(): Plugin[] {
     // We register the SW by hand in main.tsx so registration lives next to the
     // stale-chunk reload it coordinates with; no auto-injected snippet.
     injectRegister: false,
-    includeAssets: ["favicon.ico", "favicon.png", "apple-touch-icon.png"],
+    includeAssets: [
+      "favicon.ico",
+      "favicon.png",
+      "apple-touch-icon.png",
+      "nexorus-wordmark.png",
+      "nexorus-icon.png",
+    ],
     manifest: {
-      name: "GeoLibre",
-      short_name: "GeoLibre",
-      description:
-        "A free and open-source, lightweight, cloud-native GIS platform for visualizing, exploring, and analyzing geospatial data, running in the browser, on the desktop, on mobile, and inside Jupyter notebooks while keeping your data local and private.",
-      theme_color: "#2f8f85",
-      background_color: "#ffffff",
+      name: "Nexorus Atlas",
+      short_name: "Atlas",
+      description: "Nexorus Atlas spatial analysis workspace. Powered by GeoLibre.",
+      theme_color: "#08172f",
+      background_color: "#08172f",
       display: "standalone",
       orientation: "any",
       categories: ["productivity", "utilities", "education"],

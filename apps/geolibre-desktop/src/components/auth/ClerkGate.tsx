@@ -13,6 +13,7 @@ import { AlertTriangle } from "lucide-react";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useBeforeUnloadGuard } from "../../hooks/useBeforeUnloadGuard";
+import { NexorusAuthShell } from "./NexorusAuthShell";
 
 interface ClerkGateProps {
   publishableKey: string;
@@ -81,14 +82,27 @@ export function ClerkGate({ publishableKey, waitlist = false, children }: ClerkG
   // read the same isDirty and the browser shows one prompt.
   useBeforeUnloadGuard();
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      appearance={{
+        variables: {
+          colorPrimary: "#9b87f5",
+          colorBackground: "#10213f",
+          colorForeground: "#f3f7ff",
+          colorMutedForeground: "#b7c6df",
+          colorInput: "#0b1932",
+          colorInputForeground: "#f3f7ff",
+          borderRadius: "0.75rem",
+        },
+      }}
+    >
       <ClerkLoading>
-        <div className="flex min-h-screen items-center justify-center bg-background">
+        <NexorusAuthShell>
           <div
             aria-hidden="true"
-            className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary"
+            className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#344569] border-t-[#8d7bf7]"
           />
-        </div>
+        </NexorusAuthShell>
       </ClerkLoading>
       {/* Clerk reports a distinct "error" status (a key that no longer resolves,
           an unreachable Frontend API, an outage). Both ClerkLoading and
@@ -96,23 +110,27 @@ export function ClerkGate({ publishableKey, waitlist = false, children }: ClerkG
           leaves a blank page with no way to tell a stuck deployment from a slow
           one. */}
       <ClerkFailed>
-        <main
-          role="alert"
-          className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-8 text-center"
-        >
-          <AlertTriangle className="h-10 w-10 text-destructive" />
-          <div className="space-y-1">
-            <h1 className="text-lg font-semibold">{t("auth.unavailableTitle")}</h1>
-            <p className="max-w-md text-sm text-muted-foreground">
-              {t("auth.unavailableDescription")}
-            </p>
+        <NexorusAuthShell alert>
+          <div className="flex flex-col items-center gap-4 text-center">
+            <AlertTriangle className="h-10 w-10 text-[#ed89a0]" />
+            <div className="space-y-1">
+              <h1 className="text-lg font-semibold text-white">{t("auth.unavailableTitle")}</h1>
+              <p className="max-w-md text-sm text-[#b7c6df]">
+                {t("auth.unavailableDescription")}
+              </p>
+            </div>
+            <Button
+              className="bg-[#6657e8] text-white hover:bg-[#7d70f1]"
+              onClick={() => window.location.reload()}
+            >
+              {t("auth.retry")}
+            </Button>
           </div>
-          <Button onClick={() => window.location.reload()}>{t("auth.retry")}</Button>
-        </main>
+        </NexorusAuthShell>
       </ClerkFailed>
       <ClerkLoaded>
         <Show when="signed-out">
-          <main className="flex min-h-screen items-center justify-center bg-background p-4">
+          <NexorusAuthShell>
             {waitlist && onWaitlistRoute ? (
               <Waitlist signInUrl={SIGN_IN_HASH} />
             ) : (
@@ -122,7 +140,7 @@ export function ClerkGate({ publishableKey, waitlist = false, children }: ClerkG
               // shows no route to a form nobody can act on.
               <SignIn routing="hash" waitlistUrl={waitlist ? WAITLIST_HASH : undefined} />
             )}
-          </main>
+          </NexorusAuthShell>
         </Show>
         <Show when="signed-in">
           {children}
