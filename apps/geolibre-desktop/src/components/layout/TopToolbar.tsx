@@ -127,6 +127,7 @@ import { isMaptoolkitBasemapActive } from "../../lib/maptoolkit-basemap";
 import { useDesktopSettingsStore } from "../../hooks/useDesktopSettings";
 import { MENU_MANAGED_PLUGIN_IDS, isMenuVisible, isPluginVisible } from "../../lib/ui-profile";
 import { CommandPalette } from "../command/CommandPalette";
+import { CloudflareAccessLogoutLink } from "../auth/CloudflareAccessSession";
 import { KeyboardShortcutsDialog } from "../command/KeyboardShortcutsDialog";
 import { useGlobalShortcuts } from "../../hooks/useGlobalShortcuts";
 import { useViewportHistory } from "../../hooks/useViewportHistory";
@@ -2687,6 +2688,7 @@ export function TopToolbar({
             ) : null}
           </>
         ) : null}
+        <CloudflareAccessLogoutLink />
       </div>
     </header>
   );
