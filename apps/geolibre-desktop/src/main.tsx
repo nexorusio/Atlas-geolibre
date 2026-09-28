@@ -240,20 +240,22 @@ function loadAuthGate(
 // stale lazy chunk 404s (cooldown-guarded; if sessionStorage is blocked it
 // skips the reload and lets the preload error surface instead). That keeps
 // the user's session/map state intact and removes the self-refresh loop.
-registerSW({
-  immediate: true,
-  onNeedReload() {
-    // Intentionally a no-op: the updated SW is already in control, so let the
-    // refreshed shell load on the user's next page load rather than yanking the
-    // page out from under them. See installStaleChunkReload for the on-demand
-    // recovery path when a now-deleted lazy chunk is actually requested.
-  },
-  onRegisterError(error) {
-    // Registration can fail in production (non-secure origin, scope conflict).
-    // The app still works without the SW, so surface it rather than fail.
-    console.error("[GeoLibre] Service worker registration failed", error);
-  },
-});
+if (!cloudflareAccess) {
+  registerSW({
+    immediate: true,
+    onNeedReload() {
+      // Intentionally a no-op: the updated SW is already in control, so let the
+      // refreshed shell load on the user's next page load rather than yanking the
+      // page out from under them. See installStaleChunkReload for the on-demand
+      // recovery path when a now-deleted lazy chunk is actually requested.
+    },
+    onRegisterError(error) {
+      // Registration can fail in production (non-secure origin, scope conflict).
+      // The app still works without the SW, so surface it rather than fail.
+      console.error("[GeoLibre] Service worker registration failed", error);
+    },
+  });
+}
 
 const sharedSettingsUrl = desktopSettingsUrl(window.location.search);
 const sharedSettingsReady = sharedSettingsUrl
