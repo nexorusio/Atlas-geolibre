@@ -9,10 +9,11 @@ Droplet must authenticate to GHCR before pulling.
 ## Update the current Compose deployment
 
 On the Droplet, edit only the `geolibre.image` line in
-`/srv/atlas-geolibre/compose.yaml` after a tagged image has been published:
+`/srv/atlas-geolibre/compose.yaml` after the merge has published the fork's
+`main` image:
 
 ```yaml
-image: ghcr.io/nexorusio/atlas-geolibre:v3.1.0-nexorus.1
+image: ghcr.io/nexorusio/atlas-geolibre:main
 ```
 
 Then run:
@@ -27,7 +28,9 @@ sudo docker compose ps
 The Caddy container and the `./work` and `./data` mounts stay in place. A
 GitHub commit does not automatically change the running container: publish an
 image and explicitly pull/recreate the `geolibre` service for each release.
-Keep a copy of the previous image line for rollback.
+The `main` tag moves as new commits are merged; pin a `v*` release tag or
+digest when you need an immutable deployment. Keep a copy of the previous
+image line for rollback.
 
 ## Sign-in
 
