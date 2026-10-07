@@ -12,6 +12,7 @@ import { bundledPlugins } from "./vite-plugins/bundled-plugins";
 import { copyCesiumAssets } from "./vite-plugins/copy-cesium-assets";
 import { copyRtlText } from "./vite-plugins/copy-rtl-text";
 import { copyVectorOps } from "./vite-plugins/copy-vector-ops";
+import { rejectUnpatchedRuntimeDependencies } from "./vite-plugins/reject-unpatched-runtime-dependencies";
 import {
   proxyAircraftRequestGuarded,
   proxyAdsbdbAircraftRequestGuarded,
@@ -1475,6 +1476,7 @@ function pwaPlugin(): Plugin[] {
 export default defineConfig({
   base: APP_BASE,
   plugins: [
+    rejectUnpatchedRuntimeDependencies(),
     ...(PGLITE_CDN ? [pgliteCdnLoaderPlugin()] : []),
     ...(CEREUS_CDN ? [cereusCdnLoaderPlugin()] : []),
     duckdbWasmBundlesPlugin(),

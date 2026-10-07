@@ -15,7 +15,24 @@ import { spawnSync } from "node:child_process";
 // Severities that fail the build. Moderate/low are left to Dependabot PRs.
 const BLOCKING = new Set(["high", "critical"]);
 
-const ALLOWLIST = new Map();
+// Reviewed 2026-10-07. The web build rejects these two packages if they
+// enter its runtime module graph; see docs/dependency-audit.md.
+const ALLOWLIST = new Map([
+  [
+    "GHSA-vfj7-8cjw-p6xm",
+    "No patched braces release exists. It is pulled in by patch-package and " +
+      "@placemarkio/geojson-rewind's unused @changesets/cli dependency; the " +
+      "published geometry implementation imports no release tooling. The " +
+      "runtime build guard rejects braces in application bundles.",
+  ],
+  [
+    "GHSA-86w9-cpqp-85rv",
+    "No patched node-forge release exists. It is pulled in by Earth Engine's " +
+      "Node-only googleapis -> google-auth-library -> gtoken -> google-p12-pem " +
+      "chain. Atlas uses Earth Engine's browser entry point; the runtime build " +
+      "guard rejects node-forge in application bundles.",
+  ],
+]);
 
 const audit = spawnSync("npm", ["audit", "--omit=dev", "--json"], {
   encoding: "utf8",
