@@ -1,0 +1,23 @@
+# Disposable CI only: no Cloudflare tunnel, no production volumes.
+services:
+  projects-gateway:
+    ports: ['127.0.0.1:18002:8080']
+  caddy-test:
+    image: caddy:2.11.4-alpine
+    ports: ['127.0.0.1:18000:8080']
+    volumes:
+      - ./tests/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile.routes:/etc/caddy/projects.routes:ro
+    networks: [atlas_proxy]
+    depends_on:
+      projects-gateway:
+        condition: service_healthy
+      catalog-test:
+        condition: service_started
+  catalog-test:
+    image: nginx:1.30.5-alpine3.24
+    volumes:
+      - ./tests/catalog.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      atlas_proxy:
+        aliases: [atlas-geolens-catalog]

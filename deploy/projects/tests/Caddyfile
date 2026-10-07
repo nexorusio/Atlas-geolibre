@@ -1,0 +1,13 @@
+{
+    auto_https off
+    admin off
+}
+:8080 {
+    import /etc/caddy/projects.routes
+    handle /data/* {
+        respond "existing data route" 200
+    }
+    handle {
+        respond "existing Atlas canvas" 200
+    }
+}

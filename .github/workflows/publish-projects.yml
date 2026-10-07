@@ -1,0 +1,80 @@
+name: Projects retention container
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['backend/geolibre_server_api/**', 'deploy/projects/**', '.github/workflows/publish-projects.yml']
+  push:
+    branches: [main]
+    paths: ['backend/geolibre_server_api/**', 'deploy/projects/**', '.github/workflows/publish-projects.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: projects-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  retention:
+    name: Project save, restart and restore
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -e 'backend/geolibre_server_api[test,postgres]' pyyaml
+      - name: Test native API and deployment configuration
+        run: python -m pytest -c backend/geolibre_server_api/pyproject.toml backend/geolibre_server_api/tests deploy/projects/tests/test_configuration.py
+      - uses: docker/setup-buildx-action@v4
+      - name: Build the native project server
+        uses: docker/build-push-action@v7
+        with:
+          context: backend/geolibre_server_api
+          load: true
+          platforms: linux/amd64
+          tags: geolibre-projects:test
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=projects
+          cache-to: type=gha,mode=max,scope=projects
+      - name: Create disposable private configuration
+        run: |
+          docker network create projects-ci-proxy
+          python deploy/projects/configure.py --origin https://atlas.example --image geolibre-projects:test --network projects-ci-proxy
+      - name: Start the complete proxy and retention stack
+        working-directory: deploy/projects
+        run: docker compose -f compose.yaml -f tests/compose.ci.yaml up -d --wait --wait-timeout 180
+      - name: Verify save, OAuth, permissions, restart and isolated restore
+        run: python deploy/projects/tests/container_smoke.py --ci
+      - name: Container status on failure
+        if: failure()
+        working-directory: deploy/projects
+        # Do not dump compose/environment or OAuth-bearing request logs.
+        run: docker compose -f compose.yaml -f tests/compose.ci.yaml ps -a
+      - name: Remove disposable CI containers and volumes
+        if: always()
+        working-directory: deploy/projects
+        run: docker compose -f compose.yaml -f tests/compose.ci.yaml down -v --remove-orphans
+      - name: Log in to the existing container package
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the tested image with a full commit tag
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          projects_image="ghcr.io/${GITHUB_REPOSITORY,,}:projects-sha-${GITHUB_SHA}"
+          docker tag geolibre-projects:test "$projects_image"
+          docker push "$projects_image"
