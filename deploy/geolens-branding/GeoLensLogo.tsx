@@ -18,7 +18,7 @@ export function GeoLensLogo({ variant = 'full', size = 'md', className }: GeoLen
     return <img src="/nexorus-icon.png" alt="Nexorus Atlas Catalog" className={cn(s.icon, 'object-contain', className)} />;
   }
   return (
-    <span role="img" aria-label="Nexorus Atlas Catalog" className={cn('inline-flex flex-col items-start rounded-md bg-[#08172f] px-2 py-1', className)}>
+    <span role="img" aria-label="Nexorus Atlas Catalog" className={cn('inline-flex flex-col items-start gap-1', className)}>
       <img src="/nexorus-wordmark.png" alt="Nexorus" className={cn(s.wordmark, 'h-auto')} />
       <span className={cn(s.text, 'font-medium tracking-wide text-slate-200')}>Atlas Catalog</span>
     </span>
