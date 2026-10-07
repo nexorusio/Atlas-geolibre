@@ -1,0 +1,9 @@
+# Copy this alongside the existing Atlas compose file and supply ATLAS_ORIGIN
+# from the new projects .env. Combine it with the existing compose files;
+# never replace the file that contains the tunnel token.
+services:
+  geolibre:
+    image: ${ATLAS_WEB_IMAGE:?Set the published web-sha image}
+    environment:
+      GEOLIBRE_SHARE_URL: ${ATLAS_ORIGIN:?Set the HTTPS Atlas origin}/projects
+      GEOLIBRE_GEOLENS_URL: ${ATLAS_ORIGIN}

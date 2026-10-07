@@ -1,0 +1,21 @@
+# Insert these handlers before the existing Atlas catch-all handler.
+# Keep the existing /data/* handler and the catalog host block.
+# Replace catalog.example below with the existing catalog's HTTPS hostname.
+@projects path /projects /projects/* /.well-known/oauth-authorization-server/projects
+handle @projects {
+    reverse_proxy geolibre-projects-gateway:8080
+}
+
+# The existing catalog frontend already proxies its /api routes to GeoLens.
+# This alias must be on Caddy's Docker network (see README).
+handle /api/* {
+    reverse_proxy atlas-geolens-catalog:8080 {
+        header_up X-Forwarded-Proto https
+    }
+}
+
+# The plugin opens dataset details relative to its API origin. Send those
+# navigation links to the existing catalog UI while keeping Atlas at /.
+handle /datasets/* {
+    redir https://catalog.example{uri} 302
+}
