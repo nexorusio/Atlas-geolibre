@@ -34,6 +34,7 @@ def test_rerun_never_rotates_an_existing_database_password(tmp_path):
 @pytest.mark.parametrize("origin", [
     "http://atlas.example", "https://atlas.example/projects", "https://user:secret@atlas.example",
     "https://atlas.example?token=secret", "https://atlas.example#fragment", "https://atlas.example\nOTHER=value",
+    "https://atlas.example$VARIABLE", "https://atlas.example'injected", "https://atlas.example:70000",
 ])
 def test_invalid_origin_cannot_create_a_secret_file(tmp_path, origin):
     with pytest.raises(ValueError):

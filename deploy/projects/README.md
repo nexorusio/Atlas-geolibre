@@ -96,10 +96,13 @@ host. Do not use that image on an ARM host without adding an ARM build/test.
 
 5. Add the contents of `Caddyfile.routes` inside the existing Atlas host block,
    before its catch-all `handle`. Preserve the `/data/*` handler and the catalog
-   host block. Validate with Caddy before reloading/recreating its container.
+   host block. Replace `catalog.example` in the dataset-details redirect with
+   the existing catalog's HTTPS hostname. Validate with Caddy before
+   reloading/recreating its container.
    Requests to `/projects/*` reach the native API after stripping the prefix;
    OAuth discovery has its own RFC 8414 path. Requests to `/api/*` reach the
    existing catalog frontend's GeoLens proxy.
+   Dataset-detail navigation redirects to that catalog UI; `/` stays Atlas.
 
 6. Combine `atlas.override.yaml` with the existing Atlas compose configuration.
    Supply **both** the existing environment file (if there is one) and the new

@@ -146,9 +146,13 @@ def main():
         assert expect(browser.get("/")).text == "existing Atlas canvas"
         assert expect(browser.get("/data/example")).text == "existing data route"
         assert expect(browser.get("/api/routing-test")).json() == {"service": "catalog-test", "proto": "https"}
+        details = expect(browser.get("/datasets/retained"), 302)
+        assert details.headers["location"] == "https://catalog.example/datasets/retained"
         expect(browser.post("/projects/api/accounts", json={}), 403)
         expect(browser.post("/projects/api/accounts/", json={}), 403)
         expect(browser.get("/projects/health"))
+        canonical = expect(browser.get("/projects/api/projects/"), 307)
+        assert canonical.headers["location"] == ISSUER + "/api/projects"
         discovery = expect(browser.get("/.well-known/oauth-authorization-server/projects")).json()
         assert discovery["issuer"] == ISSUER
         assert discovery["authorization_endpoint"] == ISSUER + "/oauth/authorize"

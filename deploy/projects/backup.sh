@@ -8,8 +8,8 @@ destination=${1:?Usage: sh backup.sh /absolute/new/backup-directory}
 case "$destination" in /*) ;; *) echo 'Use an absolute backup path.' >&2; exit 1;; esac
 mkdir -m 700 "$destination"
 cp -p .env compose.yaml nginx.conf "$destination/"
-docker compose stop projects-gateway projects-api >/dev/null
 trap 'docker compose up -d projects-api projects-gateway >/dev/null' EXIT
+docker compose stop projects-gateway projects-api >/dev/null
 docker compose exec -T projects-db pg_dump -U geolibre_projects -d geolibre_projects -Fc > "$destination/projects.dump"
 docker compose run --rm -T --no-deps --entrypoint python projects-api -c 'import sys,tarfile; t=tarfile.open(fileobj=sys.stdout.buffer,mode="w|"); t.add("/data/objects",arcname="objects"); t.close()' > "$destination/objects.tar"
 docker compose images --format json > "$destination/images.json"

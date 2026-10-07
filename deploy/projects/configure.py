@@ -20,8 +20,10 @@ def create_environment(directory: Path, origin: str, image: str, network: str, w
         or parsed.query
         or parsed.fragment
         or any(c.isspace() for c in origin)
+        or not re.fullmatch(r"[A-Za-z0-9.-]+(?::[0-9]+)?", parsed.netloc)
     ):
         raise ValueError("Use an HTTPS origin without a path, credentials or query")
+    parsed.port  # Reject an invalid/out-of-range port before writing .env.
     origin = origin.rstrip("/")
     if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9._/:@-]+", image):
         raise ValueError("Use an image tag or digest without shell metacharacters")
