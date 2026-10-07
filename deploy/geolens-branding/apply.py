@@ -24,6 +24,12 @@ for name in ('nexorus-wordmark.png', 'nexorus-icon.png', 'favicon.png',
 
 replace(frontend / 'src/hooks/use-document-title.ts', 'GeoLens', 'Nexorus Atlas Catalog')
 replace(frontend / 'src/hooks/__tests__/use-document-title.test.ts', 'GeoLens', 'Nexorus Atlas Catalog')
+for name in ('MapViewerGate.chunkLoadFailure', 'MapViewerGate.pendingChunk',
+             'MapViewerGate', 'NotFoundPage'):
+    replace(frontend / f'src/pages/__tests__/{name}.test.tsx',
+            'GeoLens', 'Nexorus Atlas Catalog')
+replace(frontend / 'src/pages/__tests__/LoginPage.footerAndMobileBranding.test.tsx',
+        "name: /GeoLens/", "name: /Nexorus Atlas Catalog/")
 for language in ('en', 'es', 'fr', 'de', 'zh'):
     path = frontend / f'src/i18n/locales/{language}/common.json'
     content = json.loads(path.read_text())
